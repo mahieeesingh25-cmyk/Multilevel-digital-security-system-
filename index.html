@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Multi-Level Digital Security System – Verilog FSM Simulator</title>
+<style>
+:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);--bg:#f4f6f9;--card:#fff;--tx:#0f172a;--mut:#475569;--gb:#dde2ea;--ac:#2563eb;--ok:#16a34a;--bad:#dc2626;--wn:#d97706}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0f141b;--card:#18202b;--tx:#e6ebf2;--mut:#9aa7ba;--gb:#283342;--ac:#60a5fa;--ok:#4ade80;--bad:#f87171;--wn:#fbbf24}}
+:root[data-theme="dark"]{--bg:#0f141b;--card:#18202b;--tx:#e6ebf2;--mut:#9aa7ba;--gb:#283342;--ac:#60a5fa;--ok:#4ade80;--bad:#f87171;--wn:#fbbf24}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--tx);font:15px/1.4 system-ui,-apple-system,"Segoe UI",sans-serif}
+header{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;margin:8px 12px;padding:8px 12px;background:var(--card);border:1px solid var(--gb);border-radius:12px}
+h1{font-size:16px;margin:0}h2{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--mut);margin:0 0 6px}
+main{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:10px;padding:0 12px 12px;max-width:1100px;margin:auto}
+.card{background:var(--card);border:1px solid var(--gb);border-radius:12px;padding:10px;min-width:0}.wide{grid-column:1/-1}
+button{font:inherit;color:var(--tx);background:var(--card);border:1px solid var(--gb);border-radius:8px;padding:6px 10px;cursor:pointer}
+button:disabled{opacity:.4;cursor:default}button.p{background:color-mix(in srgb,var(--ac) 30%,transparent);border-color:var(--ac)}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}.mut{color:var(--mut);font-size:12px}
+.dash{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,1fr);gap:12px;align-items:start}
+@media (max-width:640px){.dash{grid-template-columns:1fr}}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:6px}
+.chip{border:1px solid var(--gb);border-radius:8px;padding:5px 8px;font:600 12px ui-monospace,Menlo,monospace}.chip small{display:block;color:var(--mut);font-weight:400;font-size:10px}
+.chip.on{border-color:var(--ac);background:color-mix(in srgb,var(--ac) 22%,transparent)}.chip.bad{border-color:var(--bad);background:color-mix(in srgb,var(--bad) 16%,transparent)}
+.bits{display:flex;gap:4px;margin-bottom:8px}.b{flex:1;text-align:center;border:1px solid var(--gb);border-radius:6px;font:600 15px ui-monospace,monospace}.b s{display:block;text-decoration:none;font-size:9px;color:var(--mut)}.b.on{background:color-mix(in srgb,var(--ac) 35%,transparent);border-color:var(--ac)}
+.code{font:12px ui-monospace,monospace;overflow-x:auto}.ln{display:flex;gap:8px;padding:2px 6px;border-radius:6px;white-space:nowrap}.ln b{width:84px;color:var(--mut);font-weight:600}.ln span{width:104px}.ln i{color:var(--mut)}.ln em{font-style:normal;width:48px;color:var(--ac)}.ln u{text-decoration:none;width:66px;color:var(--mut)}.ln.cur{background:color-mix(in srgb,var(--ac) 35%,transparent)}
+#log{height:140px;overflow:auto;font:12px ui-monospace,monospace;color:var(--mut)}#log div{padding:2px 0;border-bottom:1px solid var(--gb)}
+#demo{display:grid;grid-template-columns:1fr 1fr;gap:6px}#demo button{text-align:left;font-size:12.5px}
+#say{margin-top:8px;font-size:13px;min-height:3.6em;font-weight:600}
+.dev{margin:0 auto;width:min(100%,310px);border:2px solid var(--gb);border-radius:14px;padding:10px;background:color-mix(in srgb,var(--tx) 6%,var(--card));transform:perspective(800px) rotateY(-10deg) rotateX(3deg);box-shadow:8px 8px 0 color-mix(in srgb,var(--tx) 10%,transparent);transition:border-color .3s}
+.lcd{background:#0c2a2a;color:#7ff5d0;border-radius:8px;padding:8px 10px;font:13px ui-monospace,monospace;box-shadow:inset 0 0 18px #000}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+.lvs{display:flex;gap:6px;margin:8px 0}.lv{flex:1;text-align:center;border:2px solid var(--gb);border-radius:8px;padding:6px 2px;font-size:11px;font-weight:700}
+.lv.ok{border-color:var(--ok);background:color-mix(in srgb,var(--ok) 20%,transparent)}.lv.cur{border-color:var(--wn);animation:fl .6s infinite alternate}.lv.bad{border-color:var(--bad);background:color-mix(in srgb,var(--bad) 20%,transparent)}
+@keyframes fl{from{opacity:.45}to{opacity:1}}
+#beacon{height:12px;width:60px;margin:0 auto 6px;border-radius:6px;background:var(--mut);opacity:.4}
+.s-alarm #beacon{background:var(--bad);opacity:1;animation:fl .4s infinite alternate;box-shadow:0 0 20px var(--bad)}.s-alarm .dev{border-color:var(--bad)}
+#scr{height:96px;overflow:hidden}
+.vault{position:relative;height:90px;margin-top:6px;border:2px solid var(--gb);border-radius:8px;background:#0b0f18;perspective:600px;overflow:hidden;display:flex;align-items:center;justify-content:center;font-size:34px}
+.vault::before{content:"💰";position:absolute}.vleaf{position:absolute;inset:0;background:linear-gradient(135deg,#6b7280,#9ca3af);display:flex;align-items:center;justify-content:center;font-size:40px;transform-origin:left center;transition:transform .9s}
+.s-open .vleaf{transform:rotateY(-105deg)}
+#pad{display:grid;grid-template-columns:repeat(3,1fr);gap:5px;margin:4px 0 8px}#pad button{padding:5px 0;font-weight:700}
+</style></head><body>
+<header><h1>🔐 Multi-Level Digital Security System — Verilog FSM Simulator</h1>
+<div class="row"><label class="mut">Speed <input id="spd" type="range" min="1" max="5" value="3"></label><button id="snd">🔊 Sound on</button><button id="th">Theme</button><button id="rst">Reset</button></div></header>
+<main>
+<section class="card wide"><h2>Access panel and controls (PIN 2580 · valid card · valid fingerprint)</h2><div class="dash" id="dl"><div><div class="dev"><div id="beacon"></div><div class="lcd" id="scr"></div><div class="lvs" id="lvs"></div><div class="vault"><div class="vleaf">⚙️</div></div></div></div>
+<div><div class="row"><button class="p" id="req">🔔 Request access</button><button id="cx">✖ Cancel</button><button id="adm">🔑 Admin reset</button></div>
+<div class="mut" style="margin:8px 0 2px">Level 1 — PIN keypad</div><div id="pad"></div>
+<div class="mut">Level 2 — access card</div><div class="row" id="cards" style="margin:3px 0 8px"><button data-c="1">💳 Valid card</button><button data-c="0">🪪 Unknown card</button></div>
+<div class="mut">Level 3 — fingerprint</div><div class="row" id="fing" style="margin:3px 0 8px"><button data-f="1">👍 Valid finger</button><button data-f="0">☝️ Unknown finger</button></div>
+<div class="mut" style="margin-bottom:4px">Use cases (auto-demo)</div><div id="demo"></div><div id="say">Pick a use case to start.</div></div></div></section>
+<section class="card"><h2>Verilog signals</h2><div class="grid" id="sig"></div></section>
+<section class="card"><h2>FSM — Verilog case statement</h2><div class="code" id="vc"></div></section>
+<section class="card wide"><h2>Access log</h2><div id="log"></div></section>
+</main>
+<script>
+const $=id=>document.getElementById(id),hx=v=>v.toString(16).toUpperCase().padStart(2,"0")+"H",h4=v=>v.toString(16).toUpperCase().padStart(4,"0")+"H";
+function log(t){const d=document.createElement("div");d.textContent=new Date().toLocaleTimeString()+"  "+t;$("log").prepend(d)}
+$("th").onclick=()=>{const d=document.documentElement,dark=d.dataset.theme?d.dataset.theme=="dark":matchMedia("(prefers-color-scheme:dark)").matches;d.dataset.theme=dark?"light":"dark"};
+const ST=["IDLE","L1_PIN","L2_CARD","L3_BIO","GRANTED","ALARM"];
+const V=[["IDLE","if (request) next = L1_PIN;"],["L1_PIN","if (enter) begin if (pin == CODE) next = L2_CARD; else if (attempts == 3) next = ALARM; end"],["L2_CARD","if (swipe) begin if (card_id == VALID_ID) next = L3_BIO; else if (attempts == 3) next = ALARM; end"],["L3_BIO","if (scan) begin if (bio_match) next = GRANTED; else if (attempts == 3) next = ALARM; end"],["GRANTED","begin door_open = 1; if (timeout) next = IDLE; end"],["ALARM","begin alarm = 1; if (admin_reset) next = IDLE; end"]];
+const T=ms=>ms*[1.8,1.3,1,.6,.3][$("spd").value-1];
+let s,gen=0,tok=0,AC,snd=true,osc,sirT;
+const later=(ms,f)=>{const g=gen;setTimeout(()=>{if(g==gen)f()},T(ms))};
+function aud(){if(!AC){try{AC=new(window.AudioContext||window.webkitAudioContext)()}catch(e){}}try{AC&&AC.state=="suspended"&&AC.resume()}catch(e){}}
+function sync(){const want=snd&&s.st==5&&AC;
+ if(want&&!osc){try{osc=AC.createOscillator();const g=AC.createGain();osc.type="square";osc.frequency.value=760;g.gain.value=.05;osc.connect(g);g.connect(AC.destination);osc.start();let hi=0;sirT=setInterval(()=>{hi^=1;osc.frequency.value=hi?1100:760},350)}catch(e){osc=null}}
+ if(!want&&osc){clearInterval(sirT);try{osc.stop()}catch(e){}osc=null}}
+function reset(){gen++;tok++;s={st:0,buf:"",att:0,lv:0,pin:0,card:0,bio:0,busy:0,msg:"System idle. Press Request access."};$("log").innerHTML="";log("Reset: system idle. PIN = 2580");render()}
+const go=(st,msg)=>{s.st=st;if(msg!==undefined)s.msg=msg;render()};
+function toIdle(m){s.buf="";s.att=0;s.lv=0;s.pin=0;s.card=0;s.bio=0;s.busy=0;go(0,m)}
+function request(){if(s.st!=0)return;go(1,"LEVEL 1: enter the 4-digit PIN");log("request = 1 → L1_PIN")}
+function key(d){if(s.st==1&&!s.busy&&s.buf.length<4){s.buf+=d;render()}}
+function clr(){if(s.st==1&&!s.busy){s.buf="";render()}}
+function fail(l,n){s.att++;s.busy=0;s.buf="";if(s.att>=3){go(5,"INTRUDER ALERT - SYSTEM LOCKED");log(n+" failed 3 times → ALARM")}else{go(l,n+" rejected ("+s.att+"/3). Try again.");log(n+" rejected, attempts = "+s.att)}}
+function enter(){if(s.st!=1||s.busy||s.buf.length<4)return;s.busy=1;s.msg="Checking PIN...";render();later(700,()=>{if(s.buf=="2580"){s.pin=1;s.att=0;s.lv=1;s.busy=0;s.buf="";go(2,"LEVEL 2: swipe your access card");log("pin_ok = 1 → L2_CARD")}else{s.pin=0;fail(1,"PIN")}})}
+function swipe(v){if(s.st!=2||s.busy)return;s.busy=1;s.msg="Reading card...";render();later(700,()=>{if(v){s.card=1;s.att=0;s.lv=2;s.busy=0;go(3,"LEVEL 3: place your finger on the scanner");log("card_ok = 1 → L3_BIO")}else{s.card=0;fail(2,"Card")}})}
+function scan(v){if(s.st!=3||s.busy)return;s.busy=1;s.msg="Scanning fingerprint...";render();later(700,()=>{if(v){s.bio=1;s.att=0;s.lv=3;s.busy=0;go(4,"ACCESS GRANTED - vault door open");log("bio_ok = 1 → GRANTED, door_open = 1");later(3500,()=>{toIdle("Door closed. System idle.");log("timeout → IDLE")})}else{s.bio=0;fail(3,"Fingerprint")}})}
+function cancel(){if(s.st>=1&&s.st<=3&&!s.busy){log("Cancelled → IDLE");toIdle("Cancelled. System idle.")}}
+function admin(){if(s.st!=5)return;log("admin_reset = 1 → IDLE, alarm cleared");toIdle("System reset by admin.")}
+function render(){sync();
+ $("scr").innerHTML=`<div style="color:#fbbf24;font-weight:700;margin-bottom:4px">${ST[s.st].replace("_"," ")}</div><div>${s.msg}</div>`+(s.st==1?`<div style="font-size:20px;letter-spacing:.2em;margin-top:6px">${"●".repeat(s.buf.length)+"○".repeat(4-s.buf.length)}</div>`:"");
+ $("lvs").innerHTML=["L1 PIN","L2 CARD","L3 BIO"].map((n,i)=>`<div class="lv ${s.lv>i?"ok":(s.st==i+1?"cur":(s.st==5&&s.lv==i?"bad":""))}">${n}<br>${s.lv>i?"✔":s.st==5&&s.lv==i?"✖":"·"}</div>`).join("");
+ const d=$("dl").classList;d.toggle("s-open",s.st==4);d.toggle("s-alarm",s.st==5);
+ const sg=[["state[2:0]",s.st.toString(2).padStart(3,"0")+" "+ST[s.st]],["level[1:0]",s.lv.toString(2).padStart(2,"0")],["pin_ok",s.pin],["card_ok",s.card],["bio_ok",s.bio],["attempts[1:0]",s.att.toString(2).padStart(2,"0")+" ("+s.att+")"],["door_open",s.st==4?1:0],["alarm",s.st==5?1:0]];
+ $("sig").innerHTML=sg.map(([n,v])=>`<div class="chip ${v===1?(n=="alarm"?"bad":"on"):""}"><small>${n}</small>${v}</div>`).join("");
+ $("vc").innerHTML=V.map(([n,c],i)=>`<div class="ln ${i==s.st?"cur":""}"><b>${n}:</b><span style="width:auto">${c}</span></div>`).join("");
+ $("req").disabled=s.st!=0;$("adm").disabled=s.st!=5;
+ document.querySelectorAll("#cards button").forEach(b=>b.disabled=s.st!=2);document.querySelectorAll("#fing button").forEach(b=>b.disabled=s.st!=3)}
+$("pad").innerHTML=["1","2","3","4","5","6","7","8","9","C","0","E"].map(k=>`<button data-k="${k}">${k=="C"?"Clear":k=="E"?"Enter":k}</button>`).join("");
+$("pad").onclick=e=>{const b=e.target.closest("button");if(!b)return;aud();const k=b.dataset.k;if(k=="C")clr();else if(k=="E")enter();else key(k)};
+$("req").onclick=()=>{aud();request()};$("cx").onclick=cancel;$("adm").onclick=admin;$("rst").onclick=reset;
+$("cards").onclick=e=>{const b=e.target.closest("button");if(b)swipe(b.dataset.c=="1")};$("fing").onclick=e=>{const b=e.target.closest("button");if(b)scan(b.dataset.f=="1")};
+$("snd").onclick=()=>{snd=!snd;aud();sync();$("snd").textContent=snd?"🔊 Sound on":"🔇 Sound off"};
+async function play(i){reset();const my=++tok;const h={W:ms=>new Promise((r,j)=>setTimeout(()=>my==tok?r():j("stop"),T(ms))),U:async f=>{while(!f())await h.W(150)},Y:async d=>{for(const ch of d){key(ch);await h.W(250)}}};
+ try{for(const [say,fn] of DEMOS[i][1]){$("say").textContent=say;await fn(h);await h.W(900)}$("say").textContent="✔ Demo finished. Try another use case, or use the panel yourself."}catch(e){}}
+const L1=async h=>{await h.Y("2580");enter();await h.U(()=>s.st!=1||(!s.busy&&s.buf==""&&s.st==1&&s.att>0))};
+const BADPIN=async h=>{await h.Y("1111");enter();await h.U(()=>!s.busy)};
+const GOTO=async(h,n)=>{await h.U(()=>s.st==n)};
+const DEMOS=[
+["✅ Authorized entry (3 levels)",[["A staff member requests access.",async h=>request()],["Level 1: correct PIN 2580 → pin_ok = 1.",async h=>{await h.Y("2580");enter();await GOTO(h,2)}],["Level 2: valid access card → card_ok = 1.",async h=>{swipe(true);await GOTO(h,3)}],["Level 3: valid fingerprint → bio_ok = 1 → GRANTED. The vault opens, then closes after the timeout.",async h=>{scan(true);await GOTO(h,4);await GOTO(h,0)}]]],
+["❌ Wrong PIN, then correct",[["Request access.",async h=>request()],["Wrong PIN 1111 → attempts = 1, back to L1_PIN.",BADPIN],["Correct PIN → level 1 cleared, attempts reset.",async h=>{await h.Y("2580");enter();await GOTO(h,2)}],["The user cancels → IDLE.",async h=>cancel()]]],
+["🪪 Stolen card + fake finger",[["An attacker knows the PIN and has a stolen card.",async h=>request()],["Level 1 passed with the PIN.",async h=>{await h.Y("2580");enter();await GOTO(h,2)}],["Level 2 passed with the stolen card.",async h=>{swipe(true);await GOTO(h,3)}],["Level 3: the fingerprint does not match, 3 times → ALARM. Three levels stop the attacker.",async h=>{for(let n=0;n<3;n++){scan(false);await h.U(()=>!s.busy);await h.W(500)}}]]],
+["🚨 PIN brute-force → ALARM",[["Request access.",async h=>request()],["Wrong PIN, attempt 1.",BADPIN],["Wrong PIN, attempt 2.",BADPIN],["Wrong PIN, attempt 3 → attempts == 3 → ALARM. The siren sounds until the admin resets.",async h=>{await BADPIN(h)}]]],
+["🔑 Admin reset after alarm",[["Request access, then three wrong PINs.",async h=>{request();for(let n=0;n<3;n++){await h.W(500);await BADPIN(h)}}],["The system is in ALARM and locked. Only the admin key can clear it.",async h=>{}],["Admin reset → alarm = 0 → IDLE.",async h=>admin()]]]];
+$("demo").innerHTML=DEMOS.map((d,i)=>`<button data-i="${i}">${d[0]}</button>`).join("")+'<button id="stop">⏹ Stop</button>';
+$("demo").onclick=e=>{const b=e.target.closest("button");if(!b)return;aud();if(b.id=="stop"){tok++;$("say").textContent="Demo stopped.";return}play(+b.dataset.i)};
+reset();
+</script></body></html>
